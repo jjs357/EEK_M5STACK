@@ -2,6 +2,13 @@
 
 void clearText() {
   display.fillRect(0, 0, display.width(), display.height() / 2, TFT_BLACK);
+  display.setFont(&fonts::Font2);
+  display.setCursor(0, 0);
+}
+
+void clearTextLarge() {
+  display.fillRect(0, 0, display.width(), display.height() / 2, TFT_BLACK);
+  display.setFont(&fonts::FreeSans9pt7b);
   display.setCursor(0, 0);
 }
 
@@ -75,6 +82,10 @@ void toggle_virt_led(int (&ledToToggle)[3], long toggleDelay) {
   delay(toggleDelay);
   virt_digitalWrite(ledToToggle, !(ledToToggle[2] > 0));
   delay(toggleDelay);
+  virt_digitalWrite(ledToToggle, !(ledToToggle[2] > 0));
+  delay(toggleDelay);
+  virt_digitalWrite(ledToToggle, !(ledToToggle[2] > 0));
+  delay(toggleDelay);
 }
 
 void animateVirtLEDs() {
@@ -101,14 +112,14 @@ void toggle_led(int ledToToggle) {
 }
 
 void print_LED_Labels() {
-  display.setTextFont(1);
-  display.setCursor(conn[0] - 20, conn[1] + ledSize + 2, 1);
+  display.setFont(&fonts::Font0);
+  display.setCursor(conn[0] - 20, conn[1] + ledSize + 2);
   display.println("Connected");
-  display.setCursor(control[0] - 20, control[1] + ledSize + 2, 1);
+  display.setCursor(control[0] - 20, control[1] + ledSize + 2);
   display.println("In Control");
-  display.setCursor(use_imu[0] - 20, use_imu[1] + ledSize + 2, 1);
+  display.setCursor(use_imu[0] - 20, use_imu[1] + ledSize + 2);
   display.println("Using IMU");
-  display.setCursor(battery[0] - 20, battery[1] + ledSize + 2, 1);
+  display.setCursor(battery[0] - 20, battery[1] + ledSize + 2);
   display.println("Battery");
 }
 
@@ -130,7 +141,7 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
   last_command_millis = millis();
   boolean responseExpected = true;
   lastCommandOK = true;
-  clearText();
+  clearTextLarge();
   digitalWrite(COMMAND_TICK, HIGH);  // off when high
   display.println("Command:");
   display.println(command);
@@ -141,12 +152,12 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
     responseExpected = true;
     digitalWrite(COMMAND_TICK, LOW);  // on when LOW
   }
-  if (command.indexOf("rc") >= 0) { // Actuator commands
+  if (command.indexOf("rc") >= 0) {  // Actuator commands
     udp_delay_ticks = 0;
     lastCommandOK = true;  // rc commands are always OK
     responseExpected = false;
     digitalWrite(COMMAND_TICK, LOW);  // on when LOW
-  } 
+  }
 
   memset(buffer, 0, 50);
   command.getBytes(buffer, command.length() + 1);
@@ -183,17 +194,17 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
         digitalWrite(COMMAND_TICK, HIGH);  // LED off when HIGH
       } else if (command.equalsIgnoreCase("goHome")) {
         lastCommandOK = true;
-        virt_digitalWrite(control, 0);     // At Home
+        virt_digitalWrite(control, 0);  // At Home
         in_control = 0;
         digitalWrite(COMMAND_TICK, HIGH);  // LED off when HIGH
       } else if (commandResponse.indexOf("ok") >= 0) {
         lastCommandOK = true;
-        virt_digitalWrite(control, 1);     // still in control
+        // virt_digitalWrite(control, 1);     // still in control
         digitalWrite(COMMAND_TICK, HIGH);  // LED off when HIGH
       }
     }
   } else if (command.indexOf("command") >= 0) {  // no response
-    clearText();
+    clearTextLarge();
     display.println("No command response: ");
     display.println("Restarting");
     lastCommandOK = false;
@@ -202,28 +213,12 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
   delay(waitAfterDelay);
 }
 
-void run_demo_controlPlan() {
-  if (connected) {
-    Serial.println("run_demo_controlPlan");
-    run_command("move 0 0", 20, 0);
-    run_command("move -900 450", 20, 0);
-    delay(1000);
-    run_command("move 0 -450", 20, 0);
-    delay(1000);
-    run_command("move 900 450", 20, 0);
-    delay(1000);
-    run_command("move 0 -450", 20, 0);
-    delay(1000);
-    run_command("goHome", 20, 0);
-  }
-}
-
 void set_home_manually() {
   if (connected) {
     bool buttonWasPressed = false;
     int waitCounter = 0;
     Serial.println("set_home_manually");
-    clearText();
+    clearTextLarge();
     display.println("Move Stack");
     display.println("to New Home");
     display.println("Press A");
@@ -231,7 +226,7 @@ void set_home_manually() {
     M5.update();
     while (true) {
       if (M5.BtnA.wasPressed()) {
-        clearText();
+        clearTextLarge();
         run_command("setHome", 20, 1000);
         run_command("goHome", 20, 0);
         break;
@@ -242,37 +237,38 @@ void set_home_manually() {
   }
 }
 
-void run_flight_plan_A() {
+void run_demo_controlPlan() {
   Serial.println("run_demo_controlPlan");
+  toggle_virt_led(control, 500);
   run_command("move 0 0", 20, 0);
-  run_command("rotateX 500", 20, 0);
-  delay(2000);
-  run_command("stop", 20, 0);
-  run_command("rotateX -500", 20, 0);
-  delay(2000);
-  run_command("stop", 20, 0);
-  run_command("move 0 0", 20, 0);
+  run_command("move 0 450", 20, 0);
+  run_command("snap", 20, 0);
+  delay(1000);
+  run_command("move 0 300", 20, 0);
+  run_command("snap", 20, 0);
+  delay(1000);
+  run_command("move -900 -450", 20, 0);
+  delay(1000);
+  run_command("move 900 450", 20, 0);
+  delay(1000);
+  run_command("move 900 -450", 20, 0);
+  delay(1000);
+  run_command("goHome", 20, 0);
+  toggle_virt_led(control, 500);
 }
 
-void run_flight_plan_B() {
-  if (connected) {
-    Serial.println("run_flight_plan_B");
-    run_command("motoron", 10, 5000);
-    run_command("motoroff", 10, 1000);
-    run_command("takeoff", 40, 0);
-    if (lastCommandOK) virt_digitalWrite(control, 1);
-    // to-do-1: Add several more commands here
-    run_command("cw 180", 20, 2000);
-    run_command("ccw 180", 20, 2000);
-    run_command("land", 40, 0);
-    if (lastCommandOK) virt_digitalWrite(control, 0);
-  }
-}
-
-void run_circle_flight() {
-  run_command("rc 0 0 0 0", 0, 1000);
-  run_command("rc 0 50 0 -100", 0, 4000);  // fly a CCW circular arc
-  run_command("rc 0 0 0 0", 0, 1000);
+void run_flight_plan_A() {
+  Serial.println("run_flight_plan_A");
+  toggle_virt_led(control, 500);
+  run_command("move 0 0", 40, 1000);
+  run_command("rotateX 500", 40, 0);
+  delay(2000);
+  run_command("stop", 40, 500);
+  run_command("rotateX -500", 40, 0);
+  delay(2000);
+  run_command("stop", 40, 500);
+  run_command("move 0 0", 40, 0);
+  toggle_virt_led(control, 500);
 }
 
 void onTakeoffButtonPressed() {
@@ -289,14 +285,18 @@ void onTakeoffButtonPressed() {
     run_command("moveX 0 500", 40, 100);
     run_command("move 0 0", 40, 0);
     virt_digitalWrite(control, 1);
-    in_control = true;    
-    use_IMUtoControl = !use_IMUtoControl; // toggle IMU control setting
+    in_control = true;
+    use_IMUtoControl = !use_IMUtoControl;  // toggle IMU control setting
     virt_digitalWrite(use_imu, use_IMUtoControl);
     run_command("battery?", 20, 2000);
   }
 }
 
 void onRotateButtonPressed() {
+  if (use_IMUtoControl) {
+    use_IMUtoControl = false;
+    virt_digitalWrite(use_imu, false);
+  }
   if (in_rotation) {
     run_command("stop", 20, 0);
     in_rotation = false;
@@ -307,20 +307,14 @@ void onRotateButtonPressed() {
   }
 }
 
-void onKillButtonPressed() {
-  Serial.println("KILL button is pressed");
+void onPowerButtonPressed() {
+  if (use_IMUtoControl) {
+    use_IMUtoControl = false;
+    virt_digitalWrite(use_imu, false);
+  }
+  Serial.println("Power button is pressed");
   if (in_control) {
-    run_command("goHome", 20, 0);
-    if (lastCommandOK) virt_digitalWrite(control, 0);
-    in_control = false;
-    clearText();
-    display.println("Chan returned");
-    display.println("Home");
-    display.setCursor(0, 40);
-    display.println("Restarting!");
-    Serial.println("Restarting: Emergency command ");
-    delay(3000);
-    ESP.restart();
+    run_flight_plan_A();
   } else {
     run_demo_controlPlan();
   }
@@ -341,15 +335,11 @@ void check_serial() {
         connectToWiFi(command.c_str());
       } else if (connected) {
         if (command.indexOf("takeoff") >= 0) {
-          run_command(command, 40, 0);
-          if (lastCommandOK) virt_digitalWrite(control, 1);
-          in_control = true;
+          onTakeoffButtonPressed();
         } else if (command.indexOf("land") >= 0) {
-          run_command(command, 40, 0);
-          if (lastCommandOK) virt_digitalWrite(control, 0);
-          in_control = false;
+          onTakeoffButtonPressed();
         } else {
-          run_command(command, 10, 0);
+          run_command(command, 20, 0);
         }
       }
     }

@@ -73,7 +73,14 @@ String prefs_sn;
 
 void refreshTextArea() {
   tft.fillRect(0, textTop, tft.width(), tft.height() / 2, TFT_BLACK);
-  tft.setCursor(0, textTop, 4);
+  tft.setTextFont(2);
+  tft.setCursor(0, textTop);
+}
+
+void refreshTextAreaLarge() {
+  tft.fillRect(0, textTop, tft.width(), tft.height() / 2, TFT_BLACK);
+  tft.setTextFont(4);
+  tft.setCursor(0, textTop);
 }
 
 void virt_analogWrite(int (&virtLED)[3], byte g) {
@@ -254,28 +261,28 @@ void changeSSID(String ssid) {
 
 void print_LED_Labels () {
   tft.setTextFont(1);
-  tft.setCursor(up[0], up[1] + ledSize + 2, 1);
+  tft.setCursor(up[0], up[1] + ledSize + 2);
   tft.println("Up");
-  tft.setCursor(forward[0], forward[1] + ledSize + 2, 1);
+  tft.setCursor(forward[0], forward[1] + ledSize + 2);
   tft.println("Forward");
-  tft.setCursor(ccw[0], ccw[1] + ledSize + 2, 1);
+  tft.setCursor(ccw[0], ccw[1] + ledSize + 2);
   tft.println("CCW");
-  tft.setCursor(cw[0], cw[1] + ledSize + 2, 1);
+  tft.setCursor(cw[0], cw[1] + ledSize + 2);
   tft.println("CW");
-  tft.setCursor(left[0], left[1] + ledSize + 2, 1);
+  tft.setCursor(left[0], left[1] + ledSize + 2);
   tft.println("Left");
-  tft.setCursor(right[0], right[1] + ledSize + 2, 1);
+  tft.setCursor(right[0], right[1] + ledSize + 2);
   tft.println("Right");
-  tft.setCursor(down[0], down[1] + ledSize + 2, 1);
+  tft.setCursor(down[0], down[1] + ledSize + 2);
   tft.println("Down");
-  tft.setCursor(back[0], back[1] + ledSize + 2, 1);
+  tft.setCursor(back[0], back[1] + ledSize + 2);
   tft.println("Back");
 
-  tft.setCursor(connected[0], connected[1] + ledSize + 2, 1);
+  tft.setCursor(connected[0], connected[1] + ledSize + 2);
   tft.println("Connected");
-  tft.setCursor(in_flight[0] - 30, in_flight[1] + ledSize + 2, 1);
+  tft.setCursor(in_flight[0] - 30, in_flight[1] + ledSize + 2);
   tft.println("In Flight");
-  tft.setCursor(battery[0], battery[1] + ledSize + 2, 1);
+  tft.setCursor(battery[0], battery[1] + ledSize + 2);
   tft.println("Battery");
 }
 
@@ -292,8 +299,11 @@ void do_land() {
 
 void setup() {
   M5.begin();
-  tft.setRotation(2); // Optional: Rotate the display
+//  tft.setRotation(2); // Optional: Rotate the display
   tft.setFont(&fonts::Font0);
+//  tft.setFont(&FreeSans9pt7b);
+
+
   tft.fillScreen(TFT_BLACK);
   // tft.setTextColor(TFT_GREEN,TFT_BLACK);
   tft.setTextColor(TFT_WHITE);
@@ -302,7 +312,6 @@ void setup() {
   virt_digitalWrite(in_flight, 0);
   reset_rc_leds();
 
-  tft.setTextFont(4);
   Serial.begin(115200);
   while (!Serial) {
     delay(10);
@@ -359,7 +368,7 @@ void setup() {
   Serial.print("Serial Number: ");
   Serial.println(serialNumber);
 
-  refreshTextArea();
+  refreshTextAreaLarge() ;
   tft.println("Beginning Tello");
   tft.println("Simulation");
   delay(2000);
@@ -420,7 +429,7 @@ void loop() {
     lastCommandTime = millis();
     int len = Udp.read(packetBuffer, 255);
     if (len > 0) packetBuffer[len] = 0;
-    refreshTextArea();
+    refreshTextAreaLarge();
     tft.println("Received:");
     tft.println(packetBuffer);
     String command = String((char *)packetBuffer);

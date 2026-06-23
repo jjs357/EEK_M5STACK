@@ -32,9 +32,7 @@ void setup() {
 
   display.setTextColor(TFT_WHITE, TFT_BLACK);
   display.setCursor(0, 0);
-  display.setFont(&fonts::AsciiFont8x16);
-  //  display.setTextSize(2);
-  //  display.setFont(&fonts::FreeMonoBold8pt7b);
+  display.setFont(&fonts::Font2);
   display.println("Setup");
   display.println("Complete");
   delay(3000);
@@ -64,10 +62,15 @@ void loop() {
       // onRotateButtonPressed();
       onTakeoffButtonPressed();
     }
+
     if (M5.BtnB.wasPressed()) {
       // Serial.println("Right side button pressed");
       // onTakeoffButtonPressed();
       onRotateButtonPressed();
+    }
+
+    if (M5.BtnPWR.wasClicked()) {
+      onPowerButtonPressed();
     }
 
     if (joyc.getButtonStatus() == 0) {

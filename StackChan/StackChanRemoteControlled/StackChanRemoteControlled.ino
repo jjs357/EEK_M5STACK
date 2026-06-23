@@ -128,6 +128,13 @@ void refreshTextArea() {
   refreshTft();
 }
 
+void refreshTextAreaLarge() {
+  tft.fillRect(0, textTop, tft.width(), tft.height() / 2, TFT_BLACK);
+  tft.setTextFont(4);
+  tft.setCursor(0, textTop);
+  refreshTft();
+}
+
 void virt_analogWrite(int (&virtLED)[3], byte g) {
   uint16_t color = ((0x0 >> 3) << 11) | ((g >> 2) << 5) | (0x0 >> 3);
   tft.fillRect(virtLED[0], virtLED[1], ledSize, ledSize, color);
@@ -333,7 +340,7 @@ void setup() {
   Serial.print("Serial Number: ");
   Serial.println(serialNumber);
 
-  refreshTextArea();
+  refreshTextAreaLarge();
   tft.println("Beginning Chan Control");
   refreshTft();
   delay(2000);
@@ -356,6 +363,7 @@ void loop() {
   /* Angle unit: 10 = 1 degrees, Speed range: 0~1000 */
   /* Range X: -1280 ~ 1280 (-128° ~ 128°), Range Y: 0 ~ 900 (0° ~ 90°) */
   M5.update();
+  batLevel = M5.Power.getBatteryLevel();
   M5StackChan.update();
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
@@ -379,7 +387,7 @@ void loop() {
     lastCommandTime = millis();
     int len = Udp.read(packetBuffer, 255);
     if (len > 0) packetBuffer[len] = 0;
-    refreshTextArea();
+    refreshTextAreaLarge();
     tft.println("Received:");
     tft.println(packetBuffer);
     refreshTft();
