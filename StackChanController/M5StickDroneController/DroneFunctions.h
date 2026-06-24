@@ -2,6 +2,13 @@
 
 void clearText() {
   display.fillRect(0, 0, display.width(), display.height() / 2, TFT_BLACK);
+  display.setFont(&fonts::Font2);
+  display.setCursor(0, 0);
+}
+
+void clearTextLarge() {
+  display.fillRect(0, 0, display.width(), display.height() / 2, TFT_BLACK);
+  display.setFont(&fonts::FreeSans9pt7b);
   display.setCursor(0, 0);
 }
 
@@ -84,9 +91,12 @@ void animateVirtLEDs() {
   delay(500);
   virt_digitalWrite(flight, 1);
   delay(500);
+  virt_digitalWrite(use_imu, 1);
+  delay(500);
   virt_digitalWrite(conn, 0);
   virt_digitalWrite(battery, 0);
   virt_digitalWrite(flight, 0);
+  virt_digitalWrite(use_imu, 0);
 }
 
 void toggle_led(int ledToToggle) {
@@ -98,13 +108,15 @@ void toggle_led(int ledToToggle) {
 }
 
 void print_LED_Labels() {
-  display.setTextFont(1);
+  display.setFont(&fonts::Font0);
   display.setCursor(conn[0] - 20, conn[1] + ledSize + 2, 1);
   display.println("Connected");
   display.setCursor(flight[0] - 20, flight[1] + ledSize + 2, 1);
   display.println("In Flight");
   display.setCursor(battery[0] - 20, battery[1] + ledSize + 2, 1);
   display.println("Battery");
+  display.setCursor(use_imu[0] - 20, use_imu[1] + ledSize + 2);
+  display.println("Using IMU");
 }
 
 void imuValuesUpdate() {
@@ -125,8 +137,7 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
   last_command_millis = millis();
   boolean responseExpected = true;
   lastCommandOK = true;
-  clearText();
-  ;
+  clearTextLarge();
   digitalWrite(COMMAND_TICK, HIGH);  // off when high
   display.println("Command:");
   display.println(command);
@@ -189,18 +200,16 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
         lastCommandOK = false;
       }
     } else if (in_flight) {
-      clearText();
+      clearTextLarge();
       display.println("No command response: ");
       display.println("Landing NOW!");
-      display.display();
       lastCommandOK = false;
       digitalWrite(COMMAND_TICK, HIGH);  // led off when HIGH
     }
   } else if (command.indexOf("command") >= 0) {  // no response
-    clearText();
+    clearTextLarge();
     display.println("No command response: ");
     display.println("Restarting");
-    display.display();
     lastCommandOK = false;
     digitalWrite(COMMAND_TICK, HIGH);  // led off when HIGH
   }
@@ -271,11 +280,18 @@ void run_flight_plan_B() {
   }
 }
 
-void run_circle_flight() {
+void run_CCW_circle_flight() {
   run_command("rc 0 0 0 0", 0, 1000);
   run_command("rc 0 50 0 -100", 0, 4000);  // fly a CCW circular arc
   run_command("rc 0 0 0 0", 0, 1000);
 }
+
+void run_CW_circle_flight() {
+  run_command("rc 0 0 0 0", 0, 1000);
+  run_command("rc 0 50 0 100", 0, 4000);  // fly a CW circular arc
+  run_command("rc 0 0 0 0", 0, 1000);
+}
+
 
 void onTakeoffButtonPressed() {
   if (in_flight) {
@@ -295,15 +311,46 @@ void onKillButtonPressed() {
     run_command("emergency", 10, 0);
     if (lastCommandOK) virt_digitalWrite(flight, 0);
     in_flight = false;
-    clearText();
+    clearTextLarge();
     display.println("Emergency");
-    display.setCursor(0, 40);
     display.println("Restarting!");
     Serial.println("Restarting: Emergency command ");
     delay(3000);
     ESP.restart();
   } else {
     run_flight_plan();
+  }
+}
+
+void onPowerButtonPressed() {
+  if (use_IMUtoFly) {
+    use_IMUtoFly = false;
+    virt_digitalWrite(use_imu, false);
+  }
+  Serial.println("Power button is pressed");
+  if (in_flight) {
+    run_CW_circle_flight();
+  } else {
+    run_flight_plan_A();
+  }
+}
+
+void onBtnBPressed() {
+  // Serial.println("Right side button pressed");
+  if (!in_flight) {
+    clearTextLarge();
+    if (use_IMUtoFly) {
+      use_IMUtoFly = false;
+      display.println("IMU Flying");
+      display.println("Disabled");
+    } else {
+      use_IMUtoFly = true;
+      display.println("IMU Flying");
+      display.println("Enabled");
+    }
+    virt_digitalWrite(use_imu, use_IMUtoFly);
+  } else {
+    run_CCW_circle_flight();
   }
 }
 

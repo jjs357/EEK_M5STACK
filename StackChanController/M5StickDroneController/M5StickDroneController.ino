@@ -31,10 +31,7 @@ void setup() {
   virt_digitalWrite(flight, 0);
 
   display.setTextColor(TFT_WHITE, TFT_BLACK);
-  display.setCursor(0, 0);
-  display.setFont(&fonts::AsciiFont8x16);
-  //  display.setTextSize(2);
-  //  display.setFont(&fonts::FreeMonoBold8pt7b);
+  clearTextLarge();
   display.println("Setup");
   display.println("Complete");
   delay(3000);
@@ -74,19 +71,15 @@ void loop() {
       // Serial.println("Center button pressed");
       onTakeoffButtonPressed();
     }
+
     if (M5.BtnB.wasPressed()) {
-      // Serial.println("Right side button pressed");
-      if (!in_flight) {
-        if (use_IMUtoFly) {
-          use_IMUtoFly = false;
-          display.println("IMU Flying Disabled");
-        } else {
-          use_IMUtoFly = true;
-          display.println("IMU Flying Enabled");
-        }
-      } else {
-        run_circle_flight();
-      }
+      // Serial.println("Right side B button pressed");
+      onBtnBPressed();
+    }
+
+    if (M5.BtnPWR.wasClicked()) {
+      // Serial.println("Left side Power button pressed");
+      onPowerButtonPressed();
     }
 
     if (joyc.getButtonStatus() == 0) {

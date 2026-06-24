@@ -31,8 +31,7 @@ void setup() {
   virt_digitalWrite(control, 0);
 
   display.setTextColor(TFT_WHITE, TFT_BLACK);
-  display.setCursor(0, 0);
-  display.setFont(&fonts::Font2);
+  clearTextLarge();
   display.println("Setup");
   display.println("Complete");
   delay(3000);

@@ -76,6 +76,7 @@ String lastCommand;
 int conn[3] = { 10, 140, 0 };
 int battery[3] = { 10, 170, 0 };
 int flight[3] = { 10, 200, 0 };
+int use_imu[3] = { 90, 200, 0 };
 
 int LEDsTop = 120;
 int ledSize = 19;
