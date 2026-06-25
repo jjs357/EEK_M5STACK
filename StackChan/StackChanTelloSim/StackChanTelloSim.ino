@@ -35,7 +35,6 @@ char packetBuffer[255];
 char responseBuffer[255];
 
 unsigned int localPort = 8889;
-unsigned long batTimer = 0;
 unsigned long motorStart = 0;
 unsigned long lastCommandTime = 0;
 int batLevel = 100;
@@ -377,12 +376,15 @@ void setup() {
   commandMode = 0;
   inFlight = 0;
   SDKTimerEnabled = false;
-  batLevel = 100;
+  batLevel = M5.Power.getBatteryLevel();
   virt_BatteryWrite(batLevel);
   Udp.begin(localPort);
 }
 
 void loop() {
+  M5.update();
+  batLevel = M5.Power.getBatteryLevel();
+  virt_BatteryWrite(batLevel);  
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
     if (command.length() == 0) command = Serial.readStringUntil('\r');
@@ -399,11 +401,7 @@ void loop() {
   if (motorOn) {
     toggle_virt_led(in_flight, 250);
   }
-  if ((millis() - batTimer) > 30000) {
-    batLevel = batLevel - 2;
-    batTimer = millis();
-    virt_BatteryWrite(batLevel);
-  }
+
   if (!commandMode) {
     toggle_virt_led(connected, 1000);
   }
@@ -436,7 +434,6 @@ void loop() {
     Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
     if (command.indexOf("command") >= 0) {
       commandMode = 1;
-      batTimer = millis();
       virt_digitalWrite(connected, 1);
       Udp.printf("ok");
       Udp.endPacket();
@@ -460,6 +457,7 @@ void loop() {
       } else {
         if (command.indexOf("battery?") >= 0) {
           // Udp.printf("100\r\n");
+          batLevel = M5.Power.getBatteryLevel();
           String batString = String(batLevel) + "\r\n";
           batString.toCharArray(responseBuffer, batString.length() + 1);
           Udp.printf(responseBuffer);

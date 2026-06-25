@@ -364,6 +364,7 @@ void loop() {
   /* Range X: -1280 ~ 1280 (-128° ~ 128°), Range Y: 0 ~ 900 (0° ~ 90°) */
   M5.update();
   batLevel = M5.Power.getBatteryLevel();
+  virt_BatteryWrite(batLevel);
   M5StackChan.update();
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
