@@ -58,14 +58,15 @@ uint8_t buffer[50];
 boolean rotateXdirCW = true;
 boolean use_MPUtoControl = false;
 
+boolean cameraOn = true;
+
 Preferences preferences;
 
 String saved_ssid;
 
 unsigned long rcTime = 0;
 unsigned long rcHomeTime = 0;
-unsigned long rcTimerLimit = 2000;
-unsigned long rcHomeTimerLimit = 6000;
+unsigned long rcTimerLimit = 1500;
 
 String rcCmd = "stop";
 String lastRcCmd = "stop";
@@ -73,7 +74,7 @@ String rcCmdHead = "move ";
 
 int maxYAngle = 900;
 int Yangle = 0;
-int maxXngle = 1280;
+int maxXAngle = 1280;
 int Xangle = 0;
 
 String lastCommand;

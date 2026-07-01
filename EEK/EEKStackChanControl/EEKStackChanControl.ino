@@ -17,11 +17,9 @@ void setup() {
 
   upButton.begin(UP_PIN, INPUT, false);
   upButton.setTapHandler(onUpButtonTapped);
-  upButton.setLongClickHandler(cameraClick);
 
   downButton.begin(DOWN_PIN, INPUT, false);
   downButton.setTapHandler(onDownButtonTapped);
-  downButton.setLongClickHandler(cameraClick);
 
   cwButton.begin(CW_PIN, INPUT, false);
   cwButton.setTapHandler(onCWButtonPressed);
@@ -118,11 +116,8 @@ void loop() {
       } else {
         // limitedRoll = map(AbsRoll, 15, 90, 400, 1280);
         // AbsRoll = constrain(AbsRoll, 10, 40);
-        limitedRoll = (AbsRoll >= 60) ? 1280 : (AbsRoll >= 40) ? 900
-                                                               : 450;
-        if (Roll < 10) {
-          limitedRoll = -limitedRoll;
-        }
+        limitedRoll = (AbsRoll >= 60) ? 900 : (AbsRoll >= 40) ? 600
+                                                              : 300;
       }
       // set dead zone for Controller tilt angle
       if (AbsPitch <= 15) {
@@ -130,29 +125,24 @@ void loop() {
       } else {
         // limitedPitch = map(AbsPitch, 15, 90, 300, 900);
         // AbsPitch = constrain(AbsPitch, 15, 45);
-        limitedPitch = (AbsPitch >= 60) ? 900 : (AbsPitch >= 30) ? 450
-                                                                 : 300;
-        if (Pitch > 15) {
-          limitedPitch = -limitedPitch;
-        }
+        limitedPitch = (AbsPitch >= 60) ? 450 : (AbsPitch >= 30) ? 300
+                                                                 : 150;
       }
       if ((millis() - rcTime) > rcTimerLimit) {  // wait to use IMU values
         if ((limitedRoll != 0) || (limitedPitch != 0)) {
+          if (Pitch > 0) Yangle = min(Yangle + limitedPitch, 900);
+          else Yangle = max(Yangle - limitedPitch, 0);
+          if (Roll < 0) Xangle = max(Xangle - limitedRoll, -1280);
+          else Xangle = min(Xangle + limitedRoll, 1280);
           // (AbsPitch > AbsRoll) ? rcCmd = "moveY " + String(limitedPitch) + " 500" : rcCmd = "moveX " + String(limitedRoll) + " 500";
-          rcCmd = rcCmdHead + limitedRoll + " " + limitedPitch;
-          rcHomeTime = millis();
+          rcCmd = rcCmdHead + Xangle + " " + Yangle;
         }
         rcTime = millis();
-      } else if ((millis() - rcHomeTime) > rcHomeTimerLimit) {
-        rcCmd = "move 0 0";
-        rcHomeTime = millis();
-        rcTime = millis();
       }
-    }
-
-    if (lastRcCmd != rcCmd) {
-      run_command(rcCmd, 40, 0);
-      // Serial.println(gpadCommand);
+      if (lastRcCmd != rcCmd) {
+        run_command(rcCmd, 40, 0);
+        // Serial.println(gpadCommand);
+      }
     }
   }
 }

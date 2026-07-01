@@ -87,6 +87,15 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
     responseExpected = true;
     digitalWrite(COMMAND_TICK, LOW);
   }
+
+  if (command.indexOf("camera") >= 0) {
+    udp_delay_ticks = 0;  // no response for camera commands
+    lastCommandOK = true;
+    cameraOn = (command.indexOf("Start") >= 0) ? true : false;
+    responseExpected = false;
+    digitalWrite(COMMAND_TICK, LOW);
+  }
+
   if (command.indexOf("rc") >= 0) {  // Actuator commands
     udp_delay_ticks = 0;
     lastCommandOK = true;  // rc commands are always OK
@@ -174,12 +183,10 @@ void run_demo_controlPlan() {
   toggle_led(IN_CONTROL);
   Serial.println("run_demo_controlPlan");
   run_command("move 0 0", 20, 0);
-  run_command("move 0 450", 20, 0);
-  run_command("snap", 20, 0);
-  delay(1000);
-  run_command("move 0 300", 20, 0);
-  run_command("snap", 20, 0);
-  delay(1000);
+  run_command("move 0 450", 20, 500);
+  run_command("cameraStart", 0, 3000);
+  run_command("move 0 300", 20, 3000);
+  run_command("cameraStop", 0, 500);
   run_command("move -900 -450", 20, 0);
   delay(1000);
   run_command("move 900 450", 20, 0);
@@ -240,13 +247,9 @@ void onUpButtonTapped(Button2 &btn) {
   }
 }
 
-void cameraClick(Button2 &btn) {
-  run_command("snap", 20, 0);
-}
-
 void onDownButtonTapped(Button2 &btn) {
   if (in_control) {
-    Yangle = max(Yangle - 200, -900);
+    Yangle = max(Yangle - 200, 0);
     run_command("moveY " + String(Yangle) + " 500", 20, 0);
   } else {
     Serial.println("Down button is pressed when not under control");
@@ -340,6 +343,12 @@ void onKillButtonPressed(Button2 &btn) {
     ESP.restart();
   } else {
     run_command("goHome", 20, 0);
+    // toggle camera state
+    if (cameraOn) {
+      run_command("cameraStop", 0, 100);
+    } else {
+      run_command("cameraStart", 0, 100);
+    }
   }
 }
 
