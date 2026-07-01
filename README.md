@@ -10,10 +10,10 @@ The EEK is available from Elektor: [EEK](https://academypro.elektor.com/courses/
 
 The StackChan is available from M5Stack: [StackChan](https://shop.m5stack.com/products/stackchan-kawaii-co-created-open-source-ai-desktop-robot)
 
-The stock firmware for the StackChan, which is based on the M5CoreS3 that includes a ESP32-S3 SoC, provides access to AI-Chatbot behaviors that the EEK is not able to interface with and use. However, there are servo motor motions that the EEK can control as well as taking and showing pictures using the StackChan camera.
+The stock firmware for the StackChan, which is based on the M5CoreS3 that includes a ESP32-S3 SoC, provides access to AI-Chatbot behaviors that the EEK is not able to interface with and use. However, there are servo motor motions that the EEK can control as well as taking pictures and showing video using the StackChan camera. The StackChan is powered by a built-in battery.
 
-One version of the StackChan includes a StackChan controller device based on the M5StickCPlus hardware with a mini Joystick Hat pictured below.
+One version of the StackChan includes a StackChan controller device based on the M5StickCPlus hardware with a mini Joystick Hat pictured below. This device also includes a built-in rechargeable battery.
 
 <img src="Images/StackChanController.png" width="25%">
 
-Code in this repository includes three folders: one for the EEK Hardware as a controller, one for the StackChan controller and one for the StackChan itself. Each of these controllers has two Arduino projects that allows each controller to control the StackChan. The StackChan device folder itself has two projects that allow it to either function as a Drone Simulator or as a limited feature version of the StackChan where its servo motors and camera can be operated wirelessly from each controller.
+Code in this repository includes three folders: one for the EEK Hardware as a controller, one for the StackChan controller and one for the StackChan itself. Each of these controllers has two Arduino projects that allows each controller to control the StackChan. The StackChan device folder itself has two projects that allow it to either function as a Drone Simulator or as a limited feature version of the StackChan where its servo motors and camera can be operated wirelessly from each controller. In addition, the battery level on the StackChan is monitored, displayed on the StackChan screen and reported to the controllers when they are connected to it.

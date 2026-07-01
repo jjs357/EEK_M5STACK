@@ -60,6 +60,8 @@ uint8_t buffer[50];
 boolean use_IMUtoControl = true;
 boolean rotateXdirCW = true;
 
+boolean cameraOn = false;
+
 Preferences preferences;
 
 String saved_ssid;
@@ -69,12 +71,19 @@ int jsXangle = 0;
 int jsYangle = 0;
 
 
-unsigned long rcTime = 0;
-unsigned long rcTimerLimit = 500;
+unsigned long jsTime = 0;
+unsigned long jsTimerLimit = 500;
+unsigned long imuTime = 0;
+unsigned long imuTimerLimit = 1500;
 
 String rcCmd = "stop";
 String lastRcCmd = "stop";
 String rcCmdHead = "move ";
+
+int maxYAngle = 900;
+int Yangle = 0;
+int maxXAngle = 1280;
+int Xangle = 0;
 
 String lastCommand;
 

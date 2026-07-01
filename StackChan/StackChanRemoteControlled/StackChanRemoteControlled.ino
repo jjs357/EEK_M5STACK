@@ -35,9 +35,10 @@ char responseBuffer[255];
 
 unsigned int localPort = 8889;
 unsigned long lastCommandTime = 0;
+bool cameraEnabled = false;
+
 int batLevel = 100;
-int xAngle, yAngle;
-int inControl = 0;
+int yAnglePrev;
 int commandMode = 0;
 int speed = 100;
 
@@ -119,7 +120,13 @@ bool GC0308::free() {
 GC0308 Camera;
 
 void refreshTft() {
-  tft.pushSprite(0, 0);
+  if (!cameraEnabled) {
+    tft.pushSprite(0, 0);
+  }
+}
+
+void refreshCamera() {
+  camera.pushSprite(0, 0);
 }
 
 void refreshTextArea() {
@@ -242,9 +249,9 @@ void print_LED_Labels() {
   tft.setCursor(up[0], up[1] + ledSize + 2, 1);
   tft.println("Up");
   tft.setCursor(ccw[0], ccw[1] + ledSize + 2, 1);
-  tft.println("CCW");
+  tft.println("Right");
   tft.setCursor(cw[0], cw[1] + ledSize + 2, 1);
-  tft.println("CW");
+  tft.println("Left");
   tft.setCursor(down[0], down[1] + ledSize + 2, 1);
   tft.println("Down");
 
@@ -257,6 +264,34 @@ void print_LED_Labels() {
   refreshTft();
 }
 
+
+void cameraResponse(String command) {
+  if (command.indexOf("cameraStop") >= 0) {
+    cameraEnabled = false;
+    tft.pushSprite(0, 0);
+  } else if (command.indexOf("cameraStart") >= 0) {
+    cameraEnabled = true;
+  } else if (command.indexOf("cameraPause") >= 0) {
+    tft.pushSprite(0, 0);
+    delay(3000);  //show control screen for 3 seconds
+  } else if (command.indexOf("cameraSnap") >= 0) {
+    Camera.fb = NULL;  // empty buffer
+    bool nextGet = true;
+    if (Camera.get()) {
+      for (int x = 0; x < 3; x++) {
+        Camera.free();
+        nextGet = Camera.get();  // freshen buffer
+      }
+      camera.pushImage(0, 0, M5.Display.width(),
+                       M5.Display.height(),
+                       (uint16_t*)Camera.fb->buf);
+      refreshCamera();
+      delay(3000);
+      Camera.free();
+    }
+    tft.pushSprite(0, 0);
+  }
+}
 
 void setup() {
   auto cfg = M5.config();
@@ -346,8 +381,8 @@ void setup() {
   delay(2000);
   animateControlLEDs();
 
+  yAnglePrev = 0;
   commandMode = 0;
-  inControl = 0;
   batLevel = M5.Power.getBatteryLevel();
   virt_BatteryWrite(batLevel);
   Udp.begin(localPort);
@@ -355,17 +390,34 @@ void setup() {
   if (!Camera.begin()) {
     Serial.println("Camera Init Fail");
   }
-  Serial.println("Camera Init Success");
+
   Camera.sensor->set_framesize(Camera.sensor, FRAMESIZE_QVGA);
+  if (Camera.get()) {
+    Serial.println("Camera Get Success");
+    camera.pushImage(0, 0, M5.Display.width(),
+                     M5.Display.height(),
+                     (uint16_t*)Camera.fb->buf);
+    refreshCamera();
+    delay(1000);
+    Camera.free();
+  }
 }
 
 void loop() {
   /* Angle unit: 10 = 1 degrees, Speed range: 0~1000 */
   /* Range X: -1280 ~ 1280 (-128° ~ 128°), Range Y: 0 ~ 900 (0° ~ 90°) */
-  M5.update();
+  // M5.update();
   batLevel = M5.Power.getBatteryLevel();
   virt_BatteryWrite(batLevel);
   M5StackChan.update();
+  if (cameraEnabled && Camera.get()) {
+    camera.pushImage(0, 0, M5.Display.width(),
+                     M5.Display.height(),
+                     (uint16_t*)Camera.fb->buf);
+    refreshCamera();
+    Camera.free();
+  }
+
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
     if (command.length() == 0) command = Serial.readStringUntil('\r');
@@ -391,7 +443,9 @@ void loop() {
     refreshTextAreaLarge();
     tft.println("Received:");
     tft.println(packetBuffer);
-    refreshTft();
+    if (!cameraEnabled) {
+      refreshTft();
+    }
     String command = String((char*)packetBuffer);
     Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
     if (command.indexOf("command") >= 0) {
@@ -408,88 +462,90 @@ void loop() {
       Serial.print(" / ");
       Serial.println(packetBuffer);
 */
-      if (command.indexOf("battery?") >= 0) {
-        // Udp.printf("100\r\n");
-        batLevel = M5.Power.getBatteryLevel();
-        String batString = String(batLevel) + "\r\n";
-        batString.toCharArray(responseBuffer, batString.length() + 1);
-        Udp.printf(responseBuffer);
-      } else if (command.indexOf("goHome") >= 0) {
-        reset_rc_leds();
-        M5StackChan.Motion.goHome();
-        virt_digitalWrite(control, 0);
-        Udp.printf("ok");
-      } else if (command.indexOf("stop") >= 0) {
-        M5StackChan.Motion.stop();
-        reset_rc_leds();
-        Udp.printf("ok");
-      } else if (command.indexOf("snap") >= 0) {
-        if (Camera.get()) {
-          camera.pushImage(0, 0, M5.Display.width(),
-                           M5.Display.height(),
-                           (uint16_t*)Camera.fb->buf);
-          Camera.free();
-          camera.pushSprite(0, 0);
-          delay(3000);
-          tft.pushSprite(0, 0);
+      if ((command.indexOf("camera") >= 0)) {  // do camera commands first
+        cameraResponse(command);
+      } else {
+        if (command.indexOf("battery?") >= 0) {
+          // Udp.printf("100\r\n");
+          batLevel = M5.Power.getBatteryLevel();
+          String batString = String(batLevel) + "\r\n";
+          batString.toCharArray(responseBuffer, batString.length() + 1);
+          Udp.printf(responseBuffer);
+        } else if (command.indexOf("goHome") >= 0) {
+          reset_rc_leds();
+          M5StackChan.Motion.goHome();
+          virt_digitalWrite(control, 0);
+          Udp.printf("ok");
+        } else if (command.indexOf("setHome") >= 0) {
+          reset_rc_leds();
+          M5StackChan.Motion.setCurrentPostionAsHome();
+          delay(20);
+          virt_digitalWrite(control, 0);
+          Udp.printf("ok");
+        } else if (command.indexOf("stop") >= 0) {
+          M5StackChan.Motion.stop();
+          reset_rc_leds();
+          Udp.printf("ok");
+        } else if (command.indexOf("move ") >= 0) {
+          reset_rc_leds();
+          int parmsPos = command.indexOf(' ');
+          String moveParms = command.substring(parmsPos + 1);  // like "450 300"
+          int yPos = moveParms.indexOf(' ');
+          int x = moveParms.substring(0, yPos).toInt();
+          int y = moveParms.substring(yPos + 1).toInt();
+          if (x > 0) virt_digitalWrite(ccw, 1);
+          if (x < 0) virt_digitalWrite(cw, 1);
+          if (y > yAnglePrev) virt_digitalWrite(up, 1);
+          if (y < yAnglePrev && y > 0) virt_digitalWrite(down, 1);
+          if (y >= 0) {
+            M5StackChan.Motion.move(x, y);
+            yAnglePrev = y;
+          } else {
+            M5StackChan.Motion.move(x, 0);
+            yAnglePrev = 0;
+          }
+          virt_digitalWrite(control, 1);
+          Udp.printf("ok");
+          /* Only X axis supports continuous 360° rotation. Y axis does not. */
+          /* Velocity range: -1000 ~ 1000 (Negative: CW, Positive: CCW) */
+        } else if (command.indexOf("rotateX") >= 0) {
+          int speedPos = command.indexOf(' ') + 1;
+          speed = command.substring(speedPos).toInt();
+          M5StackChan.Motion.rotateX(speed);  // speed could be negative: CW if negative
+          Udp.printf("ok");
+        } else if (command.indexOf("moveX ") >= 0) {  // second parameter is speed
+          reset_rc_leds();
+          int parmsPos = command.indexOf(' ');
+          String moveParms = command.substring(parmsPos + 1);  // like "450 300"
+          int yPos = moveParms.indexOf(' ');
+          int x = moveParms.substring(0, yPos).toInt();
+          int s = moveParms.substring(yPos + 1).toInt();
+          if (x > 0) virt_digitalWrite(ccw, 1);
+          if (x < 0) virt_digitalWrite(cw, 1);
+          M5StackChan.Motion.moveX(x, s);
+          virt_digitalWrite(control, 1);
+          Udp.printf("ok");
+        } else if (command.indexOf("moveY ") >= 0) {  // second parameter is speed
+          reset_rc_leds();
+          int parmsPos = command.indexOf(' ');
+          String moveParms = command.substring(parmsPos + 1);  // like "450 300"
+          int yPos = moveParms.indexOf(' ');
+          int y = moveParms.substring(0, yPos).toInt();
+          int s = moveParms.substring(yPos + 1).toInt();
+          if (y > yAnglePrev) virt_digitalWrite(up, 1);
+          if (y < yAnglePrev && y > 0) virt_digitalWrite(down, 1);
+          if (y >= 0) {
+            M5StackChan.Motion.moveY(y, s);
+            yAnglePrev = y;
+          } else {
+            yAnglePrev = 0;
+          }
+          virt_digitalWrite(control, 1);
+          Udp.printf("ok");
         }
-        Udp.printf("ok");
-      } else if (command.indexOf("show") >= 0) {
-        camera.pushSprite(0, 0);
-        delay(3000);
-        tft.pushSprite(0, 0);
-        Udp.printf("ok");
-      } else if (command.indexOf("setHome") >= 0) {
-        M5StackChan.Motion.setCurrentPostionAsHome();
-        Udp.printf("ok");
-      } else if (command.indexOf("move ") >= 0) {
-        reset_rc_leds();
-        int parmsPos = command.indexOf(' ');
-        String moveParms = command.substring(parmsPos + 1);  // like "450 300"
-        int yPos = moveParms.indexOf(' ');
-        int x = moveParms.substring(0, yPos).toInt();
-        int y = moveParms.substring(yPos + 1).toInt();
-        if (x > 0) virt_digitalWrite(ccw, 1);
-        if (x < 0) virt_digitalWrite(cw, 1);
-        if (y > 0) virt_digitalWrite(up, 1);
-        if (y < 0) virt_digitalWrite(down, 1);
-        M5StackChan.Motion.move(x, y);
-        virt_digitalWrite(control, 1);
-        Udp.printf("ok");
-        /* Only X axis supports continuous 360° rotation. Y axis does not. */
-        /* Velocity range: -1000 ~ 1000 (Negative: CW, Positive: CCW) */
-      } else if (command.indexOf("rotateX") >= 0) {
-        int speedPos = command.indexOf(' ') + 1;
-        speed = command.substring(speedPos).toInt();
-        M5StackChan.Motion.rotateX(speed);  // speed could be negative: CW if negative
-        Udp.printf("ok");
-      } else if (command.indexOf("moveX ") >= 0) {  // second parameter is speed
-        reset_rc_leds();
-        int parmsPos = command.indexOf(' ');
-        String moveParms = command.substring(parmsPos + 1);  // like "450 300"
-        int yPos = moveParms.indexOf(' ');
-        int x = moveParms.substring(0, yPos).toInt();
-        int s = moveParms.substring(yPos + 1).toInt();
-        if (x > 0) virt_digitalWrite(ccw, 1);
-        if (x < 0) virt_digitalWrite(cw, 1);
-        M5StackChan.Motion.moveX(x, s);
-        virt_digitalWrite(control, 1);
-        Udp.printf("ok");
-      } else if (command.indexOf("moveY ") >= 0) {  // second parameter is speed
-        reset_rc_leds();
-        int parmsPos = command.indexOf(' ');
-        String moveParms = command.substring(parmsPos + 1);  // like "450 300"
-        int yPos = moveParms.indexOf(' ');
-        int y = moveParms.substring(0, yPos).toInt();
-        int s = moveParms.substring(yPos + 1).toInt();
-        if (y > 0) virt_digitalWrite(up, 1);
-        if (y < 0) virt_digitalWrite(down, 1);
-        M5StackChan.Motion.moveY(y, s);
-        virt_digitalWrite(control, 1);
-        Udp.printf("ok");
-      }
-      if (!(command.indexOf("rc") >= 0)) {  //respond if not an rc command
-        Udp.endPacket();
+        if (!(command.indexOf("camera") >= 0)) {  //respond if not an rc command
+          Udp.endPacket();
+        }
       }
     }
   }

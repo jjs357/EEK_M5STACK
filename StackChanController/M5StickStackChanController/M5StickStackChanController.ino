@@ -23,6 +23,8 @@ void setup() {
   pinMode(COMMAND_TICK, OUTPUT);
   digitalWrite(COMMAND_TICK, LOW);
 
+  cameraOn = false;
+  
   display.setRotation(0);
   display.fillScreen(BLACK);
 
@@ -101,27 +103,31 @@ void loop() {
         if (AbsRoll <= 15) {
           limitedRoll = 0;
         } else {
-          limitedRoll = map(AbsRoll, 15, 90, 400, 1280);
-          if (Roll < 15) {
-            // negative sign to go left
-            limitedRoll = -limitedRoll;
-          }
+          limitedRoll = (AbsRoll >= 60) ? 900 : (AbsRoll >= 40) ? 600
+                                                                : 300;
         }
         // set dead zone for Controller tilt angle
         if (AbsPitch <= 15) {
           limitedPitch = 0;
         } else {
-          limitedPitch = map(AbsPitch, 15, 90, 300, 900);
-          if (Pitch < 15) {
-            // negative sign to go back
-            limitedPitch = -limitedPitch;
-          }
+          limitedPitch = (AbsPitch >= 60) ? 450 : (AbsPitch >= 30) ? 300
+                                                                   : 150;
         }
-        if ((limitedRoll != 0) || (limitedPitch != 0)) {
-          if ((millis() - rcTime) > rcTimerLimit) {  // wait to use IMU values
-            (AbsPitch > AbsRoll) ? rcCmd = "moveY " + String(limitedPitch) + " 500" : rcCmd = "moveX " + String(limitedRoll) + " 500";
-            rcTime = millis();
+
+        if ((millis() - imuTime) > imuTimerLimit) {  // wait to use IMU values
+          if ((limitedRoll != 0) || (limitedPitch != 0)) {
+            if (Pitch > 0) Yangle = min(Yangle + limitedPitch, 900);
+            else Yangle = max(Yangle - limitedPitch, 0);
+            if (Roll < 0) Xangle = max(Xangle - limitedRoll, -1280);
+            else Xangle = min(Xangle + limitedRoll, 1280);
+            // (AbsPitch > AbsRoll) ? rcCmd = "moveY " + String(limitedPitch) + " 500" : rcCmd = "moveX " + String(limitedRoll) + " 500";
+            rcCmd = rcCmdHead + Xangle + " " + Yangle;
           }
+          imuTime = millis();
+        }
+        if (lastRcCmd != rcCmd) {
+          run_command(rcCmd, 40, 0);
+          // Serial.println(gpadCommand);
         }
       }
 
@@ -138,16 +144,21 @@ void loop() {
         jsYangle = 0;
       }
 
-
-      if ((jsYangle != 0) || (jsXangle != 0)) {    // use joystick values if some are non-zero
-        if ((millis() - rcTime) > rcTimerLimit) {  // wait to use Joystick values
-          rcCmd = rcCmdHead + jsXangle + " " + jsYangle;
-          rcTime = millis();
+      if ((millis() - jsTime) > jsTimerLimit) {    // wait to use Joystick values
+        if ((jsYangle != 0) || (jsXangle != 0)) {  // use joystick values if some are non-zero
+          Yangle = (jsYangle < 0) ? Yangle + jsYangle : jsYangle;
+          if (jsXangle > 0) {
+            Xangle = (Xangle < 0) ? Xangle + jsXangle : jsXangle;
+          } else {
+            Xangle = (Xangle < 0) ? jsXangle : Xangle + jsXangle;
+          }
+          rcCmd = rcCmdHead + Xangle + " " + Yangle;
         }
-      }
-      if (lastRcCmd != rcCmd) {
-        run_command(rcCmd, 40, 0);
-        // Serial.println(gpadCommand);
+        jsTime = millis();
+        if (lastRcCmd != rcCmd) {
+          run_command(rcCmd, 40, 0);
+          // Serial.println(gpadCommand);
+        }
       }
     }
   }

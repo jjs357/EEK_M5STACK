@@ -152,6 +152,15 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
     responseExpected = true;
     digitalWrite(COMMAND_TICK, LOW);  // on when LOW
   }
+  
+  if (command.indexOf("camera") >= 0) {
+    udp_delay_ticks = 0;  // no response for camera commands
+    lastCommandOK = true;
+    cameraOn = (command.indexOf("Start") >= 0) ? true : false;
+    responseExpected = false;
+    digitalWrite(COMMAND_TICK, LOW);
+  }
+
   if (command.indexOf("rc") >= 0) {  // Actuator commands
     udp_delay_ticks = 0;
     lastCommandOK = true;  // rc commands are always OK
@@ -228,6 +237,7 @@ void set_home_manually() {
       if (M5.BtnA.wasPressed()) {
         clearTextLarge();
         run_command("setHome", 20, 1000);
+        delay(20);
         run_command("goHome", 20, 0);
         break;
       }
@@ -241,12 +251,10 @@ void run_demo_controlPlan() {
   Serial.println("run_demo_controlPlan");
   toggle_virt_led(control, 500);
   run_command("move 0 0", 20, 0);
-  run_command("move 0 450", 20, 0);
-  run_command("snap", 20, 0);
-  delay(1000);
-  run_command("move 0 300", 20, 0);
-  run_command("snap", 20, 0);
-  delay(1000);
+  run_command("move 0 450", 20, 500);
+  run_command("cameraStart", 0, 3000);
+  run_command("move 0 300", 20, 3000);
+  run_command("cameraStop", 0, 500);
   run_command("move -900 -450", 20, 0);
   delay(1000);
   run_command("move 900 450", 20, 0);
@@ -257,8 +265,8 @@ void run_demo_controlPlan() {
   toggle_virt_led(control, 500);
 }
 
-void run_flight_plan_A() {
-  Serial.println("run_flight_plan_A");
+void run_rotation_plan() {
+  Serial.println("run_rotation_plan");
   toggle_virt_led(control, 500);
   run_command("move 0 0", 40, 1000);
   run_command("rotateX 500", 40, 0);
@@ -276,6 +284,10 @@ void onTakeoffButtonPressed() {
     run_command("goHome", 20, 0);
     virt_digitalWrite(control, 0);
     in_control = false;
+    Xangle = 0;
+    Yangle = 0;
+    jsTime = 0;
+    imuTime = 0;    
     run_command("battery?", 20, 2000);
   } else {
     run_command("move 0 0", 40, 100);
@@ -286,6 +298,8 @@ void onTakeoffButtonPressed() {
     run_command("move 0 0", 40, 0);
     virt_digitalWrite(control, 1);
     in_control = true;
+    imuTime = millis();
+    jsTime = millis();
     use_IMUtoControl = !use_IMUtoControl;  // toggle IMU control setting
     virt_digitalWrite(use_imu, use_IMUtoControl);
     run_command("battery?", 20, 2000);
@@ -314,9 +328,15 @@ void onPowerButtonPressed() {
   }
   Serial.println("Power button is pressed");
   if (in_control) {
-    run_flight_plan_A();
-  } else {
     run_demo_controlPlan();
+  } else {
+    if (cameraOn) {
+      run_command("cameraStop", 0, 100);
+      cameraOn = false;
+    } else {
+      run_command("cameraStart", 0, 100);
+      cameraOn = true;
+    }
   }
 }
 
