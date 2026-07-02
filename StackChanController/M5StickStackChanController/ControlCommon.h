@@ -74,7 +74,7 @@ int jsYangle = 0;
 unsigned long jsTime = 0;
 unsigned long jsTimerLimit = 500;
 unsigned long imuTime = 0;
-unsigned long imuTimerLimit = 1500;
+unsigned long imuTimerLimit = 1000;
 
 String rcCmd = "stop";
 String lastRcCmd = "stop";
