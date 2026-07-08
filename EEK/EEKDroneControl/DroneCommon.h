@@ -2,8 +2,6 @@
  *  This sketch sends Tello commands over UDP from a ESP32 device
  *
  */
-#include "FS.h"
-#include "SPIFFS.h"
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <Preferences.h>
@@ -27,10 +25,6 @@
 #define DOWN_PIN 14
 
 #define VBATPIN 35
-#define FORMAT_SPIFFS_IF_FAILED true
-
-File flightFile;
-const char *flightFilePath = "/flight_file.txt";
 
 const float MAX_BATTERY_VOLTAGE = 4.2;  // Max LiPoly voltage of a 3.7 battery is 4.2
 
@@ -49,7 +43,6 @@ int Roll;
 int AbsRoll;
 int Pitch;
 int AbsPitch;
-int Yaw;
 int limitedPitch;
 int limitedRoll;
 
@@ -76,7 +69,6 @@ boolean in_flight = false;
 boolean lastCommandOK = false;
 long last_command_millis = 0;
 boolean use_MPUtoFly = false;
-boolean use_SDK_KeepAlive = true;
 
 int disconnected_tick = 0;
 uint8_t buffer[50];

@@ -34,11 +34,6 @@ void setup() {
   Serial.begin(115200);
   // Serial.setTimeout(0);
 
-  if (!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED)) {
-    Serial.println("SPIFFS Mount Failed");
-    return;
-  }
-
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {  // Address 0x3C for 128x32
     Serial.println(F("SSD1306 allocation failed"));
@@ -73,7 +68,6 @@ void setup() {
   animateEEKLEDs();
   digitalWrite(LED_CONN_RED, HIGH);
   use_MPUtoFly = false;
-  use_SDK_KeepAlive = true;
 
   int rawValue = analogRead(VBATPIN);
   float voltageLevel = (rawValue / 4095.0) * 2 * 1.1 * 3.3;  // calculate voltage level
@@ -115,7 +109,6 @@ void loop() {
   mpu.update();
   Roll = mpu.getAngleX();
   Pitch = mpu.getAngleY();
-  Yaw = mpu.getAngleZ();
 
   lastRcCmd = rcCmd;
   rcCmd = "rc 0 0 0 0";  // default is hover
@@ -164,15 +157,9 @@ void loop() {
       }
     }
     if (lastRcCmd != rcCmd) {
-      lastCommand = lastRcCmd;
-      appendLastCommand();
       run_command(rcCmd, 0, 0);
-      //      Serial.println(goCommand);
-    } else {
-      lastCommand = "rc 0 0 0 0";  //default last command: hover
     }
-
-  } else {  // not in_flight
+  } else {  // not in_flight so run flight plans
     if (upState == HIGH) {
       Serial.println("Up button is pressed when not in flight");
       display.clearDisplay();
@@ -187,36 +174,32 @@ void loop() {
       display.clearDisplay();
       display.setCursor(0, 0);
       display.println("Down Button Pressed");
-      display.println("Changing MPU Status");
-      if (use_MPUtoFly) {
-        use_MPUtoFly = false;
-        display.println("MPU Flying Disabled");
-      } else {
-        use_MPUtoFly = true;
-        display.println("MPU Flying Enabled");
-      }
+      display.println("Running Flight Plan A");
       display.display();
       delay(2000);
+      run_flight_plan_A();
     } else if (ccwState == HIGH) {
       // Serial.println("CCW button is pressed when not in flight");
       display.clearDisplay();
       display.setCursor(0, 0);
       display.println("CCW Button Pressed");
-      display.println("Changing Keep Alive");
-      display.println("Status");
-      if (use_SDK_KeepAlive) {
-        use_SDK_KeepAlive = false;
-        display.println("Keep Alive Disabled");
-      } else {
-        use_SDK_KeepAlive = true;
-        display.println("Keep Alive Enabled");
-      }
+      display.println("Running CCW Circle Flight");
       display.display();
       delay(2000);
+      run_CCW_circle_flight();
+    } else if (cwState == HIGH) {
+      // Serial.println("CW button is pressed when not in flight");
+      display.clearDisplay();
+      display.setCursor(0, 0);
+      display.println("CW Button Pressed");
+      display.println("Running CW Circle Flight");
+      display.display();
+      delay(2000);
+      run_CW_circle_flight();
     }
   }
 
-  if (use_SDK_KeepAlive && ((millis() - last_command_millis) > 15000)) {  // keep SDK alive
+  if ((millis() - last_command_millis) > 15000) {  // keep SDK alive
     if (connected) run_command("battery?", 10, 0);
   }
 }

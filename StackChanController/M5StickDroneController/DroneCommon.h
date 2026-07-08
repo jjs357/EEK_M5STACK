@@ -13,6 +13,17 @@
 #define MiniJoyC_SCL 26
 #define COMMAND_TICK 10 // StickCPlus Red LED
 
+int jsReady = 0;
+int jsYaw = 0;
+int jsThrottle = 0;
+
+int conn[3] = { 10, 140, 0 };
+int battery[3] = { 10, 170, 0 };
+int flight[3] = { 10, 200, 0 };
+int use_imu[3] = { 90, 200, 0 };
+
+int LEDsTop = 120;
+int ledSize = 19;
 
 float accX = 0.0F;
 float accY = 0.0F;
@@ -47,9 +58,14 @@ int AbsPitch;
 int limitedPitch;
 int limitedRoll;
 
+String rcCmd = "rc 0 0 0 0";
+String lastRcCmd = "rc 0 0 0 0";
+String rcCmdHead = "rc 0 0 ";
+String rcCmdTail = " 0 0";
+String lastCommand;
+
 //Are we currently connected?
 boolean connected;
-
 boolean in_flight = false;
 boolean lastCommandOK = false;
 long last_command_millis = 0;
@@ -57,26 +73,7 @@ int disconnected_tick = 0;
 uint8_t buffer[50];
 
 boolean use_IMUtoFly = false;
-boolean use_SDK_KeepAlive = true;
 
 Preferences preferences;
 
 String saved_ssid;
-
-int jsReady = 0;
-int jsYaw = 0;
-int jsThrottle = 0;
-
-String rcCmd = "rc 0 0 0 0";
-String lastRcCmd = "rc 0 0 0 0";
-String rcCmdHead = "rc 0 0 ";
-String rcCmdTail = " 0 0";
-String lastCommand;
-
-int conn[3] = { 10, 140, 0 };
-int battery[3] = { 10, 170, 0 };
-int flight[3] = { 10, 200, 0 };
-int use_imu[3] = { 90, 200, 0 };
-
-int LEDsTop = 120;
-int ledSize = 19;

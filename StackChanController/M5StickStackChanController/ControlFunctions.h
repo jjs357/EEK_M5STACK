@@ -158,14 +158,14 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
     lastCommandOK = true;
     cameraOn = (command.indexOf("Start") >= 0) ? true : false;
     responseExpected = false;
-    digitalWrite(COMMAND_TICK, LOW);
+    digitalWrite(COMMAND_TICK, HIGH); // off when HIGH
   }
 
   if (command.indexOf("rc") >= 0) {  // Actuator commands
     udp_delay_ticks = 0;
     lastCommandOK = true;  // rc commands are always OK
     responseExpected = false;
-    digitalWrite(COMMAND_TICK, LOW);  // on when LOW
+    digitalWrite(COMMAND_TICK, HIGH);  // off when HIGH
   }
 
   memset(buffer, 0, 50);

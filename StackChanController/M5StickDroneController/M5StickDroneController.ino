@@ -156,10 +156,8 @@ void loop() {
     }
     if (lastRcCmd != rcCmd) {
       run_command(rcCmd, 0, 0);
-      // Serial.println(gpadCommand);
     }
   }
-
 
   if ((millis() - last_command_millis) > 15000) {  // keep SDK alive
     if (connected) run_command("battery?", 10, 0);

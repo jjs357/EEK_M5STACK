@@ -216,22 +216,6 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
   delay(waitAfterDelay);
 }
 
-void Run_Demo_FlightPlan() {
-  Serial.println("Run_Demo_FlightPlan");
-  run_command("motoron", 10, 5000);
-  run_command("motoroff", 10, 1000);
-  run_command("battery?", 10, 0);
-  run_command("takeoff", 40, 0);
-  if (lastCommandOK) virt_digitalWrite(flight, 1);
-  run_command("up 50", 20, 2000);
-  run_command("cw 90", 20, 2000);
-  run_command("ccw 90", 20, 2000);
-  run_command("down 50", 20, 2000);
-  run_command("land", 40, 0);
-  if (lastCommandOK) virt_digitalWrite(flight, 0);
-  run_command("battery?", 10, 0);
-}
-
 void run_flight_plan() {
   if (connected) {
     Serial.println("run_flight_plan");

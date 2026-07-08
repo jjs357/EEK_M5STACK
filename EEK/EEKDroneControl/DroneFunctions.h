@@ -26,6 +26,43 @@ void animateEEKLEDs() {
   digitalWrite(LED_BATT_RED, LOW);
 }
 
+void connectToWiFi(const char *ssid) {
+  Serial.println("Connecting to WiFi network: " + String(ssid));
+  String ssidString = String((char *)ssid);
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println("Connecting to:");
+  display.println(ssidString);
+  display.display();
+  // delete old config
+  WiFi.disconnect(true);
+  disconnected_tick = 0;
+  //Initiate connection
+  //WiFi.begin(ssid, pwd);
+  WiFi.begin(ssid);
+  Serial.println("Waiting for WIFI connection...");
+  int reconnectTick = 0;
+  while (!lastCommandOK && reconnectTick < 10) {
+    Serial.print(".");
+    display.print(".");
+    display.display();
+    reconnectTick++;
+    delay(1000);
+  }
+  if (reconnectTick >= 10) {  // waited 10 seconds
+    Serial.println("NOT CONNECTED");
+    Serial.println("Use connect Command in Serial Monitor Input with active SSID");
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.println("NOT CONNECTED");
+    display.println("Use connect command");
+    display.println("in Serial Monitor");
+    display.println("With active SSID");
+    display.display();
+    delay(2000);
+  }
+}
+
 void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
   int packetSize = 0;
   last_command_millis = millis();
@@ -131,40 +168,110 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
   delay(waitAfterDelay);
 }
 
-void connectToWiFi(const char *ssid) {
-  Serial.println("Connecting to WiFi network: " + String(ssid));
-  String ssidString = String((char *)ssid);
-  display.clearDisplay();
-  display.setCursor(0, 0);
-  display.println("Connecting to:");
-  display.println(ssidString);
-  display.display();
-  // delete old config
-  WiFi.disconnect(true);
-  disconnected_tick = 0;
-  //Initiate connection
-  //WiFi.begin(ssid, pwd);
-  WiFi.begin(ssid);
-  Serial.println("Waiting for WIFI connection...");
-  int reconnectTick = 0;
-  while (!lastCommandOK && reconnectTick < 10) {
-    Serial.print(".");
-    display.print(".");
-    display.display();
-    reconnectTick++;
-    delay(1000);
+void run_flight_plan() {
+  if (connected) {
+    Serial.println("run_flight_plan");
+    run_command("motoron", 10, 5000);
+    run_command("motoroff", 10, 1000);
+    run_command("takeoff", 40, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, HIGH);
+    run_command("up 70", 20, 2000);
+    run_command("cw 90", 20, 2000);
+    run_command("ccw 90", 20, 2000);
+    run_command("down 70", 20, 2000);
+    run_command("land", 40, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, LOW);
   }
-  if (reconnectTick >= 10) {  // waited 10 seconds
-    Serial.println("NOT CONNECTED");
-    Serial.println("Use connect Command in Serial Monitor Input with active SSID");
+}
+
+void run_flight_plan_A() {
+  if (connected) {
+    Serial.println("run_flight_plan_A");
+    run_command("motoron", 10, 5000);
+    run_command("motoroff", 10, 1000);
+    run_command("takeoff", 40, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, HIGH);
+    run_command("up 70", 20, 2000);
+    run_command("forward 70", 20, 2000);
+    run_command("left 70", 20, 2000);
+    run_command("back 70", 20, 2000);
+    run_command("right 70", 20, 2000);
+    run_command("cw 90", 20, 2000);
+    run_command("ccw 90", 20, 2000);
+    run_command("land", 40, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, LOW);
+  }
+}
+
+void run_CCW_circle_flight() {
+  Serial.println("run_CCW_circle_flight");
+  if (connected) {
+    run_command("takeoff", 40, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, HIGH);
+    run_command("rc 0 0 0 0", 0, 1000);
+    run_command("rc 0 50 0 -100", 0, 4000);  // fly a CCW circular arc
+    run_command("rc 0 0 0 0", 0, 1000);
+    run_command("land", 40, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, LOW);
+  }
+}
+
+void run_CW_circle_flight() {
+  Serial.println("run_CW_circle_flight");
+  if (connected) {
+    run_command("takeoff", 40, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, HIGH);
+    run_command("rc 0 0 0 0", 0, 1000);
+    run_command("rc 0 50 0 100", 0, 4000);  // fly a CW circular arc
+    run_command("rc 0 0 0 0", 0, 1000);
+    run_command("land", 40, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, LOW);
+  }
+}
+
+void onTakeoffButtonPressed(Button2 &btn) {
+  Serial.println("Takeoff button is pressed");
+  if (in_flight) {
+    run_command("land", 20, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, LOW);
+    in_flight = false;
+  } else {
+    run_command("takeoff", 40, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, HIGH);
+    in_flight = true;
+  }
+}
+
+void onKillButtonPressed(Button2 &btn) {
+  Serial.println("KILL button is pressed");
+  if (!connected) {
+    Serial.println("Kill Button Pressed, no connection, restarting");
+    ESP.restart();
+  }
+  if (in_flight) {
+    run_command("emergency", 10, 0);
+    if (lastCommandOK) digitalWrite(IN_FLIGHT, LOW);
+    in_flight = false;
     display.clearDisplay();
     display.setCursor(0, 0);
-    display.println("NOT CONNECTED");
-    display.println("Use connect command");
-    display.println("in Serial Monitor");
-    display.println("With active SSID");
+    display.println("Emergency");
+    display.println("Restarting!");
+    Serial.println("Restarting: Emergency command ");
+    delay(3000);
+    ESP.restart();
+  } else {
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.println("Kill Button Pressed");
+    display.println("Changing MPU Status");
+    if (use_MPUtoFly) {
+      use_MPUtoFly = false;
+      display.println("MPU Flying Disabled");
+    } else {
+      use_MPUtoFly = true;
+      display.println("MPU Flying Enabled");
+    }
     display.display();
-    delay(2000);
   }
 }
 
@@ -195,140 +302,5 @@ void check_serial() {
         }
       }
     }
-  }
-}
-
-void writeFile(fs::FS &fs, const char *path, const char *message) {
-  Serial.printf("Writing file: %s\r\n", path);
-
-  File file = fs.open(path, FILE_WRITE);
-  if (!file) {
-    Serial.println("- failed to open file for writing");
-    return;
-  }
-  if (file.print(message)) {
-    Serial.println("- file written");
-  } else {
-    Serial.println("- write failed");
-  }
-  file.close();
-}
-
-void appendFile(fs::FS &fs, const char *path, const char *message) {
-  Serial.printf("Appending to file: %s\r\n", path);
-
-  File file = fs.open(path, FILE_APPEND);
-  if (!file) {
-    Serial.println("- failed to open file for appending");
-    return;
-  }
-  if (file.print(message)) {
-    Serial.println("- message appended");
-  } else {
-    Serial.println("- append failed");
-  }
-  file.close();
-}
-
-void deleteFile(fs::FS &fs, const char *path) {
-  Serial.printf("Deleting file: %s\r\n", path);
-  if (fs.remove(path)) {
-    Serial.println("- file deleted");
-  } else {
-    Serial.println("- delete failed");
-  }
-}
-
-void appendLastCommand() {
-  this_since_takeoff = (millis() - takeoff_time);
-  commandDelay = this_since_takeoff - last_since_takeoff;
-  lastCommand = lastCommand + "," + commandDelay + "\n";
-  appendFile(SPIFFS, flightFilePath, lastCommand.c_str());
-  last_since_takeoff = this_since_takeoff;
-}
-
-void processCommand(String command) {
-  appendLastCommand();
-  run_command(command, 0, 0);
-  lastCommand = command;
-}
-
-void run_flight_plan() {
-  Serial.println("run_flight_plan");
-  if (connected) {
-    run_command("motoron", 10, 5000);
-    run_command("motoroff", 10, 1000);
-    run_command("takeoff", 40, 0);
-    if (lastCommandOK) digitalWrite(IN_FLIGHT, HIGH);
-    run_command("rc 0 0 0 0", 0, 1000);
-    run_command("rc 0 50 0 -100", 0, 4000);  // fly a CCW circular arc
-    run_command("rc 0 0 0 0", 0, 1000);
-    run_command("land", 40, 0);
-    if (lastCommandOK) digitalWrite(IN_FLIGHT, LOW);
-  }
-}
-
-void onKillButtonPressed(Button2 &btn) {
-  Serial.println("KILL button is pressed");
-  if (!connected) {
-    Serial.println("Kill Button Pressed, no connection, restarting");
-    ESP.restart();
-  }
-  if (in_flight) {
-    run_command("emergency", 10, 0);
-    digitalWrite(IN_FLIGHT, LOW);
-    in_flight = false;
-    deleteFile(SPIFFS, flightFilePath);
-  } else {
-    // run saved flight file if there is one
-    flightFile = SPIFFS.open(flightFilePath, FILE_READ);
-    if (flightFile) {
-      Serial.println("Start of Flight File...");
-      while (flightFile.available()) {
-        String command = flightFile.readStringUntil('\n');
-        int commaPosition = command.indexOf(',');
-        if (commaPosition != -1) {  // delay value present
-          commandDelay = command.substring(commaPosition + 1, command.length()).toInt();
-          // Serial.println(command);
-          // Serial.println(command.substring(0, commaPosition));
-          // Serial.println(commandDelay);
-          run_command(command.substring(0, commaPosition), 20, commandDelay);
-        } else {
-          run_command(command, 40, 0);
-          // Serial.println(command);
-        }
-        if (command.indexOf("takeoff") >= 0) {
-            digitalWrite(IN_FLIGHT, HIGH);
-            in_flight = true;
-          } else if (command.indexOf("land") >= 0) {
-            digitalWrite(IN_FLIGHT, LOW);
-            in_flight = false;
-          }
-        // Serial.println(command);
-      }
-      Serial.println("... end of Flight File");
-      flightFile.close();
-    }
-  }
-}
-
-void onTakeoffButtonPressed(Button2 &btn) {
-  Serial.println("Takeoff button is pressed");
-  if (in_flight) {
-    appendLastCommand();
-    run_command("land", 20, 0);
-    appendFile(SPIFFS, flightFilePath, "land,2\n");
-    digitalWrite(IN_FLIGHT, LOW);
-    in_flight = false;
-  } else {
-    writeFile(SPIFFS, flightFilePath, "command,2\n");
-    appendFile(SPIFFS, flightFilePath, "battery?,2\n");
-    run_command("takeoff", 40, 0);
-    digitalWrite(IN_FLIGHT, HIGH);
-    takeoff_time = millis();
-    last_since_takeoff = 0;
-    in_flight = true;
-    lastCommand = "takeoff";
-    appendLastCommand();  // will be takeoff
   }
 }
