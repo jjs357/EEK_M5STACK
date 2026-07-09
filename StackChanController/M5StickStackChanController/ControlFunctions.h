@@ -12,6 +12,14 @@ void clearTextLarge() {
   display.setCursor(0, 0);
 }
 
+void toggle_led(int ledToToggle) {
+  // Toggle the state of the LED pin (write the NOT of the current state to the LED pin)
+  digitalWrite(ledToToggle, !digitalRead(ledToToggle));
+  delay(250);
+  digitalWrite(ledToToggle, !digitalRead(ledToToggle));
+  delay(250);
+}
+
 void connectToWiFi(const char *ssid) {
   Serial.println("Connecting to WiFi network: " + String(ssid));
   String ssidString = String((char *)ssid);
@@ -101,14 +109,6 @@ void animateVirtLEDs() {
   virt_digitalWrite(battery, 0);
   virt_digitalWrite(control, 0);
   virt_digitalWrite(use_imu, 0);
-}
-
-void toggle_led(int ledToToggle) {
-  // Toggle the state of the LED pin (write the NOT of the current state to the LED pin)
-  digitalWrite(ledToToggle, !digitalRead(ledToToggle));
-  delay(250);
-  digitalWrite(ledToToggle, !digitalRead(ledToToggle));
-  delay(250);
 }
 
 void print_LED_Labels() {
@@ -330,12 +330,11 @@ void onPowerButtonPressed() {
   if (in_control) {
     run_demo_controlPlan();
   } else {
+    run_command("goHome", 20, 0);
     if (cameraOn) {
       run_command("cameraStop", 0, 100);
-      cameraOn = false;
     } else {
       run_command("cameraStart", 0, 100);
-      cameraOn = true;
     }
   }
 }

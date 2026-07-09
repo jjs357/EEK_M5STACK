@@ -13,6 +13,13 @@
 #define MiniJoyC_SCL 26
 #define COMMAND_TICK 10 // StickCPlus Red LED
 
+int conn[3] = { 10, 140, 0 };
+int battery[3] = { 10, 170, 0 };
+int control[3] = { 10, 200, 0 };
+int use_imu[3] = { 90, 200, 0 };
+
+int LEDsTop = 120;
+int ledSize = 19;
 
 float accX = 0.0F;
 float accY = 0.0F;
@@ -87,10 +94,3 @@ int Xangle = 0;
 
 String lastCommand;
 
-int conn[3] = { 10, 140, 0 };
-int battery[3] = { 10, 170, 0 };
-int control[3] = { 10, 200, 0 };
-int use_imu[3] = { 90, 200, 0 };
-
-int LEDsTop = 120;
-int ledSize = 19;

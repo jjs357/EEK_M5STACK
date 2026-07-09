@@ -65,7 +65,6 @@ Preferences preferences;
 String saved_ssid;
 
 unsigned long rcTime = 0;
-unsigned long rcHomeTime = 0;
 unsigned long rcTimerLimit = 1500;
 
 String rcCmd = "stop";

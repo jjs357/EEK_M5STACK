@@ -51,7 +51,7 @@ void manage_SSID_connection() {
   WiFi.onEvent(WiFiEvent);
   preferences.begin("chan-control", false);
   saved_ssid = preferences.getString("chan_ssid", "");
-  clearText();;
+  clearText();
   if (saved_ssid == "") {
     Serial.println("No value saved for StackChan SSID");
     display.println("No saved Chan SSID");

@@ -197,9 +197,9 @@ void run_demo_controlPlan() {
   toggle_led(IN_CONTROL);
 }
 
-void run_control_plan_A() {
+void run_rotation_plan() {
+  Serial.println("run_rotation_plan");
   toggle_led(IN_CONTROL);
-  Serial.println("run_flight_plan_A");
   run_command("move 0 0", 20, 0);
   run_command("rotateX 500", 20, 0);
   delay(2000);
@@ -218,6 +218,7 @@ void onTakeoffButtonPressed(Button2 &btn) {
     in_control = false;
     Xangle = 0;
     Yangle = 0;
+    rcTime = 0;
     run_command("battery?", 20, 2000);
   } else {
     run_command("move 0 0", 40, 100);
@@ -228,6 +229,7 @@ void onTakeoffButtonPressed(Button2 &btn) {
     run_command("move 0 0", 40, 0);
     digitalWrite(IN_CONTROL, HIGH);
     in_control = true;
+    rcTime = millis();
     run_command("battery?", 20, 2000);
   }
 }
