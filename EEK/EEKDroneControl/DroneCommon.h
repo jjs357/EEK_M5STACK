@@ -9,20 +9,28 @@
 #include <Adafruit_SSD1306.h>
 #include <Button2.h>
 
-// LED configs Huzzah
+#define Feather
+// #define DevKit
+
 #define LED_CONN_RED 26
 #define IN_FLIGHT 25
-#define LED_CONN_GREEN 21
 #define LED_BATT_RED 27
 #define LED_BATT_YELLOW 15
 #define LED_BATT_GREEN 4
-#define COMMAND_TICK 13
+#define COMMAND_TICK 26
 #define UP_PIN 34
 #define TAKEOFF_PIN 33
 #define CW_PIN 32
 #define CCW_PIN 39
 #define KILL_PIN 36
 #define DOWN_PIN 14
+
+#ifdef Feather
+#define LED_CONN_GREEN 21
+#endif
+#ifdef DevKit
+#define LED_CONN_GREEN 16
+#endif
 
 #define VBATPIN 35
 
@@ -54,11 +62,6 @@ int upState = 0;
 int downState = 0;
 int cwState = 0;
 int ccwState = 0;
-
-unsigned long last_since_takeoff = 0;
-unsigned long this_since_takeoff = 0;
-unsigned long takeoff_time = 0;
-unsigned long commandDelay = 0;
 
 //The udp library class
 WiFiUDP udp;

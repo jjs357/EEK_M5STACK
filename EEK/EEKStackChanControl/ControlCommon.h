@@ -9,13 +9,15 @@
 #include <Adafruit_SSD1306.h>
 #include <Button2.h>
 
+#define Feather
+// #define DevKit
+
 #define LED_USING_MPU 26
 #define IN_CONTROL 25
-#define LED_CONN_GREEN 21
 #define LED_BATT_RED 27
 #define LED_BATT_YELLOW 15
 #define LED_BATT_GREEN 4
-#define COMMAND_TICK 13
+#define COMMAND_TICK 26
 #define UP_PIN 34
 #define TAKEOFF_PIN 33
 #define CW_PIN 32
@@ -23,6 +25,12 @@
 #define KILL_PIN 36
 #define DOWN_PIN 14
 
+#ifdef Feather
+#define LED_CONN_GREEN 21
+#endif
+#ifdef DevKit
+#define LED_CONN_GREEN 16
+#endif
 
 //IP address to send UDP data to:
 // either use the ip address of the server or
