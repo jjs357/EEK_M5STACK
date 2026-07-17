@@ -50,13 +50,6 @@ int commandMode = 0;
 int speed = 100;
 
 const char *ssid = "TELLO-CSSJSO";
-// const char *ssid = "TELLO-SIMMBE";
-// const char *ssid = "TELLO-SIMJDA";
-// const char *ssid = "TELLO-SIMRGA";
-// const char *ssid = "TELLO-SIMGRO";
-// const char *ssid = "TELLO-SIMDSC";
-// const char *ssid = "TELLO-SIMNSW";
-// const char *ssid = "TELLO-SIMJTU";
 
 const char *password = "";
 

@@ -16,4 +16,8 @@ One version of the StackChan includes a StackChan controller device based on the
 
 <img src="Images/StackChanController.png" width="25%">
 
-Code in this repository includes three folders: one for the EEK Hardware as a controller, one for the StackChan controller and one for the StackChan itself. Each of these controllers has two Arduino projects that allows each controller to control the StackChan. The StackChan device folder itself has two projects that allow it to either function as a Drone Simulator or as a limited feature version of the StackChan where its servo motors and camera can be operated wirelessly from each controller. In addition, the battery level on the StackChan is monitored, displayed on the StackChan screen and reported to the controllers when they are connected to it.
+Code in this repository includes four folders: one for the EEK Hardware as a controller, one for the StackChan controller, one for the StackChan itself and one for the CYD (Cheap Yellow Display) that is the precursor to the StackChan for Drone Simulation. Each of the controller folders has two Arduino projects that allows each controller to control the StackChan.
+
+The StackChan device folder itself has two projects that allow it to either function as a Drone Simulator or as a limited feature version of the StackChan where its servo motors and camera can be operated wirelessly from each controller. In addition, the battery level on the StackChan is monitored, displayed on the StackChan screen and reported to the controllers when they are connected to it.
+
+The CheapYellowDisplay folder has a single project implementing a Drone Simulator. Both Drone Controller projects can control the CYD Simulator as long as the SSID selected within the controller matches that of the CYD.
