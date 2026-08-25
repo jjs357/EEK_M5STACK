@@ -139,6 +139,7 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
   lastCommandOK = true;
   clearTextLarge();
   digitalWrite(COMMAND_TICK, HIGH);  // off when high
+  Serial.println(command);
   display.println("Command:");
   display.println(command);
   // Special delay cases
@@ -148,9 +149,7 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
     udp_delay_ticks = 0;
     lastCommandOK = true;  // rc commands are always OK
     responseExpected = false;
-    digitalWrite(COMMAND_TICK, LOW);  // on when LOW
-  } else {
-    Serial.println(command);
+    digitalWrite(COMMAND_TICK, HIGH);  // off when HIGH
   }
   memset(buffer, 0, 50);
   command.getBytes(buffer, command.length() + 1);
@@ -185,17 +184,16 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
         int battery = commandResponse.toInt();
         virt_BatteryWrite(battery);
         lastCommandOK = true;
-        digitalWrite(COMMAND_TICK, HIGH);  // LED off when HIGH
-      } else if (commandResponse.indexOf("ok") >= 0) {
-        lastCommandOK = true;
-        digitalWrite(COMMAND_TICK, HIGH);  // LED off when HIGH
+        digitalWrite(COMMAND_TICK, HIGH);  // off when high
       } else if (commandResponse.indexOf("timeout") >= 0) {
-        lastCommandOK = true;
+        digitalWrite(COMMAND_TICK, HIGH);  // off when high
         Serial.println("Command timed out, ignoring for now");
       } else if (commandResponse.indexOf("forced stop") >= 0) {
+        digitalWrite(COMMAND_TICK, HIGH);  // off when high
         Serial.println("Unexpected forced stop Response; treat as error");
         lastCommandOK = false;
       } else if (commandResponse.indexOf("error") >= 0) {
+        digitalWrite(COMMAND_TICK, HIGH);  // off when high
         Serial.println("Unexpected error response; treat as error");
         lastCommandOK = false;
       }
@@ -204,15 +202,14 @@ void run_command(String command, int udp_delay_ticks, int waitAfterDelay) {
       display.println("No command response: ");
       display.println("Landing NOW!");
       lastCommandOK = false;
-      digitalWrite(COMMAND_TICK, HIGH);  // led off when HIGH
     }
   } else if (command.indexOf("command") >= 0) {  // no response
     clearTextLarge();
     display.println("No command response: ");
     display.println("Restarting");
     lastCommandOK = false;
-    digitalWrite(COMMAND_TICK, HIGH);  // led off when HIGH
   }
+
   delay(waitAfterDelay);
 }
 

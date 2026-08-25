@@ -9,8 +9,8 @@
 #include <Adafruit_SSD1306.h>
 #include <Button2.h>
 
-#define Feather
-// #define DevKit
+// #define Feather
+#define DevKit
 
 #define LED_CONN_RED 26
 #define IN_FLIGHT 25
@@ -29,7 +29,7 @@
 #define LED_CONN_GREEN 21
 #endif
 #ifdef DevKit
-#define LED_CONN_GREEN 16
+#define LED_CONN_GREEN 12
 #endif
 
 #define VBATPIN 35

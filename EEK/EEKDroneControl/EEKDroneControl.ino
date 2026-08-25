@@ -131,8 +131,8 @@ void loop() {
           limitedRoll = 0;
         } else {
           AbsRoll = constrain(AbsRoll, 10, 40);
-          limitedRoll = (AbsRoll >= 40) ? 90 : (AbsRoll >= 25) ? 70
-                                                               : 50;
+          limitedRoll = (AbsRoll >= 40) ? 70 : (AbsRoll >= 25) ? 50
+                                                               : 30;
           if (Roll > 10) {
             // negative sign to go left
             limitedRoll = -limitedRoll;
@@ -143,8 +143,8 @@ void loop() {
           limitedPitch = 0;
         } else {
           AbsPitch = constrain(AbsPitch, 15, 45);
-          limitedPitch = (AbsPitch >= 45) ? 90 : (AbsPitch >= 30) ? 70
-                                                                  : 50;
+          limitedPitch = (AbsPitch >= 45) ? 70 : (AbsPitch >= 30) ? 50
+                                                                  : 30;
           if (Pitch > 15) {
             // negative sign to go back
             limitedPitch = -limitedPitch;

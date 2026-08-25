@@ -175,10 +175,10 @@ void run_flight_plan() {
     run_command("motoroff", 10, 1000);
     run_command("takeoff", 40, 0);
     if (lastCommandOK) digitalWrite(IN_FLIGHT, HIGH);
-    run_command("up 70", 20, 2000);
+    run_command("down 50", 20, 2000);
     run_command("cw 90", 20, 2000);
     run_command("ccw 90", 20, 2000);
-    run_command("down 70", 20, 2000);
+    run_command("up 50", 20, 2000);
     run_command("land", 40, 0);
     if (lastCommandOK) digitalWrite(IN_FLIGHT, LOW);
   }
@@ -191,7 +191,7 @@ void run_flight_plan_A() {
     run_command("motoroff", 10, 1000);
     run_command("takeoff", 40, 0);
     if (lastCommandOK) digitalWrite(IN_FLIGHT, HIGH);
-    run_command("up 70", 20, 2000);
+    run_command("down 50", 20, 2000);
     run_command("forward 70", 20, 2000);
     run_command("left 70", 20, 2000);
     run_command("back 70", 20, 2000);
