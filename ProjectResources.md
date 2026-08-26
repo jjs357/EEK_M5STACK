@@ -22,7 +22,7 @@ Of particular interest is the project for the EEK itself: [EEK GitHub](https://g
 
 ## YouTube Playlists
 
-I have had a YouTube channel for a number of years but not promoted it. To support the recent Elektor Magazine interview conducted on August 26, 2026 I created several video playlists. Some of the videos in the playlists were created in support of my classes at Villanova University.
+I have had a YouTube channel for a number of years but not promoted it. To support the recent Elektor Magazine interview conducted on August 26, 2026 ([EEK Interview EEI #62](https://www.youtube.com/watch?v=LzYNUZEU-ls&list=PL2a34OA-WuyZzwCHCBnsezdv1you5S2Eb)) I created several video playlists. Some of the videos in the playlists were created in support of my classes at Villanova University.
 
 [EEK and AI](https://www.youtube.com/playlist?list=PLe2bv8bOXaoE)
 
