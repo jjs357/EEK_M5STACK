@@ -10,7 +10,7 @@ With the help of Peter Dalmaris, the EEK concept was re-directed to education: l
 
 ## IoTinUrHand site
 
-Before my association with Elektor led to the creation and marketing of the EEK Academy Pro box I created hardware and software as a sole developer and created a bespoke website for this work: [IotInUrHand](https://iotinurhand.com). The links at the site are worth exploring including early videos of EEK BreadBoard assembly.
+Before my association with Elektor led to the creation and marketing of the EEK Academy Pro box [EEK Pro Box](https://www.elektor.com/products/esp32-by-example-learning-course) I created hardware and software as a sole developer and created a bespoke website for this work: [IotInUrHand](https://iotinurhand.com). The links at the site are worth exploring including early videos of EEK BreadBoard assembly.
 
 At this site is a link to my storefront where early versions of the EEK Hardware were sold: [IoTinUrHand Store](https://shop.iotinurhand.store/). The store front is still active.
 
@@ -35,3 +35,11 @@ Before the planned switch to the StackChan as a device to control, and after the
 [EEK Summer 2026](https://www.youtube.com/playlist?list=PLSzr7Cu-rSQA)
 
 In conjunction with the recent creation of this GitHub project, I have begun to create a new series of videos. The first three of these are included (as of August 26) in the playlist with more of them to follow.
+
+## Udemy Course
+
+Prior to the Academy Pro Box creation and its embedded courseware, I cooperated with Peter Dalmaris on an EEK course on the Udemy Platform. This course is still available.
+
+[EEK Udemy Course](https://www.udemy.com/course/esp32-by-example)
+
+The course starts with the breadboard form of the EEK.
